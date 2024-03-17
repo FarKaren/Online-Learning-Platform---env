@@ -1,0 +1,85 @@
+version: '3'
+
+volumes:
+  db-data:
+    driver: local
+services:
+  db:
+    image: postgres:15.1-alpine
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+      - POSTGRES_DB=platform
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  eureka-server:
+    image: karenfarmanyan/online-learning-platform-eureka:latest
+    container_name: eureka
+    environment:
+      - EUREKA_HOST=eureka
+    ports:
+      - "8761:8761"
+
+  api-gateway:
+    image: karenfarmanyan/online-learning-platform-gateway:latest
+    container_name: api-gateway
+    ports:
+      - "8081:8081"
+    expose:
+      - "8081"
+    environment:
+      - USER_SERVICE_PORT=8081
+      - APPLICATION_NAME=gateway
+      - EUREKA_HOST=eureka
+      - JWT_SECRET_KEY=W9OMCk4VNdPpCzTB0JltwhOZmXkn6eqB81J27cXy8frZZy+2fNMcUxpObC0JB5y6
+      - JWT_SECRET_REFRESH_KEY=mF2qDckO2fPuOx9i/tEgLJHheBWElCVOHYuESW/bdKksiCOsGpHAKADjcQlBZrUD
+      - EXPIRATION_SECONDS=3600
+      - REFRESH_EXPIRATION_SECONDS=1800
+      - ISSUER=gateway
+      - AUDIENCE=gateway
+    depends_on:
+      - eureka-server
+
+
+  user-service:
+    image: karenfarmanyan/online-learning-platform-user-service:latest
+    container_name: user-service
+    ports:
+      - "8082:8082"
+    expose:
+      - "8082"
+    environment:
+      - USER_SERVICE_PORT=8082
+      - APPLICATION_NAME=userservice
+      - EUREKA_HOST=eureka
+      - DB_HOST=postgres
+      - DB_USERNAME=user
+      - DB_PASSWORD=pass
+    depends_on:
+      - db
+      - eureka-server
+
+  course-service:
+    image: karenfarmanyan/online-learning-platform-course-service:latest
+    container_name: course-service
+    ports:
+      - "8083:8083"
+    expose:
+      - "8083"
+    environment:
+      - USER_SERVICE_PORT=8083
+      - APPLICATION_NAME=courseservice
+      - EUREKA_HOST=eureka
+      - DB_HOST=postgres
+      - DB_USERNAME=user
+      - DB_PASSWORD=pass
+    depends_on:
+      - db
+      - eureka-server
+
+
+
