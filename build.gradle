@@ -29,8 +29,8 @@ version = '1.0-SNAPSHOT'
 docker {
 	registryCredentials {
 		url = 'registry.hub.docker.com/karenfarmanyan'
-		username = 'karenfarmanyan'
-		password = 'rekviem160'
+		username = 'username'
+		password = 'password'
 	}
 }
 
